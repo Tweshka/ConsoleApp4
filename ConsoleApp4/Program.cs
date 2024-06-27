@@ -1,47 +1,65 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 
-public class FolderSizeCalculator
+class Program
 {
-    public static long CalculateFolderSize(string directoryPath)
+    public static event Action<int> SortEvent;
+
+    static void Main()
     {
-        long totalSize = 0;
+        List<string> names = new List<string> { "Smith", "Brown", "Johnson", "Williams", "Jones" };
 
-        
-        if (!Directory.Exists(directoryPath))
-        {
-            throw new ArgumentException("Папка не существует.");
-        }
-
-        
-        foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories))
-        {
-            FileInfo fileInfo = new FileInfo(filePath);
-            totalSize += fileInfo.Length;
-        }
-
-        return totalSize;
-    }
-
-    public static void Main(string[] args)
-    {
-        if (args.Length != 1)
-        {
-            Console.WriteLine("Необходимо указать путь к папке в качестве аргумента.");
-            return;
-        }
-
-        string folderPath = args[0];
+        SortEvent += SortNames;
 
         try
         {
-            long sizeInBytes = CalculateFolderSize(folderPath);
-            Console.WriteLine($"Размер папки '{folderPath}': {sizeInBytes} байт");
+            Console.WriteLine("Enter 1 for sorting A-Z or 2 for sorting Z-A:");
+            int sortOrder = int.Parse(Console.ReadLine());
+
+            if (sortOrder == 1 || sortOrder == 2)
+            {
+                SortEvent?.Invoke(sortOrder);
+            }
+            else
+            {
+                throw new InvalidInputException("Invalid input, please enter 1 or 2");
+            }
         }
-        catch (ArgumentException ex)
+        catch (FormatException ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine("FormatException caught: " + ex.Message);
+        }
+        catch (InvalidInputException ex)
+        {
+            Console.WriteLine("InvalidInputException caught: " + ex.Message);
+        }
+        finally
+        {
+            Console.WriteLine("Finally block executed");
+        }
+    }
+
+    static void SortNames(int order)
+    {
+        List<string> names = new List<string> { "Smith", "Brown", "Johnson", "Williams", "Jones" };
+
+        if (order == 1)
+        {
+            names.Sort();
+        }
+        else if (order == 2)
+        {
+            names.Sort((a, b) => b.CompareTo(a));
+        }
+
+        foreach (var name in names)
+        {
+            Console.WriteLine(name);
         }
     }
 }
 
+class InvalidInputException : Exception
+{
+    public InvalidInputException(string message) : base(message) { }
+}
